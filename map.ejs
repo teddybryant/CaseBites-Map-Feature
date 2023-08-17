@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width-device-width,
+        initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>My Google Maps</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                color: #333;
+            }
+            #map{
+                height:745px;
+                width:100%;
+            }
+            #studentInfo {
+                position: absolute;      
+                bottom: 0;
+                left: 0;
+                z-index: 1;
+                margin: 20px auto;
+                border: 1px solid #ccc;
+                padding: 20px;
+                background-color: white;
+            }
+            #header {
+                padding: 10px;
+                text-align: center;
+                font-size: 24px;
+            }
+        </style>
+    </head>
+    <div class="well" id="studentInfo">
+        <div id="header">Your Info</div>
+        <div>CaseCash: <%=caseCash %></div>
+        <div>Portable Swipes: <%=portSwipes %></div>
+        <div>Meal Swipes: <%=mealSwipes %></div> 
+        <div>Review Points: <%=reviewPoints %></div>
+    </div>
+    <div id="map"></div>
+    <div id="data" style="display:none;"><%= JSON.stringify(data) %></div>
+
+    <script>
+
+        var data = JSON.parse(document.getElementById('data').innerHTML);
+        function initMap(){
+            var options = {
+                zoom:15,
+                center: {lat:41.507213,lng:-81.606955},
+                streetViewControl: false,
+                //Hide Default Google Maps Icons
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [
+                            { visibility: "off" }
+                        ]
+                    },
+                    {
+                        featureType: "transit",
+                        stylers: [
+                            { visibility: "off" }
+                        ]
+                    }
+                ]
+            }
+            //creates the map
+            var map = new google.maps.Map(document.getElementById('map'), options);
+            
+            function addMarker(name, location, payOptions, hours, popItems, waitTime, img){
+                const coords = location;
+                img = img.replace(/&amp;/g, "&");
+                const [lat, lng] = coords.split(", ");
+                const formattedCoords = { lat: Number(lat), lng: Number(lng) };
+                location = formattedCoords;
+
+
+                var marker = new google.maps.Marker({
+                position: location,
+                map:map,
+                icon: img
+            })
+                
+                const contentString = `<div>
+                    <h1>${name}</h1>
+                    <p>Payment Options: ${payOptions}</p>
+                    <p>Hours: ${hours}</p>
+                    <p>Popular Items: ${popItems}</p>
+                    <p>Est. Wait Time: ${waitTime}</p>
+                    <a href="/index.html">
+                        <button>Check Reviews</button>
+                    </a>
+                </div>`;
+
+                var infoWindow = new google.maps.InfoWindow({
+                        content: contentString
+                });
+
+                marker.addListener('click', function() {
+                    infoWindow.open(map, marker);
+                });
+            }
+            data.forEach(restaurant =>{
+                addMarker(
+                    restaurant.name,
+                    restaurant.location,
+                    restaurant.payOptions,
+                    restaurant.hours,
+                    restaurant.popItems,
+                    restaurant.waitTime,
+                    restaurant.img
+                )
+            }) 
+        }
+    </script>
+  
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB2zN4XibhG6DPOVT9Xy_smKHsgNEXMwGY&callback=initMap">
+    </script>
+</html>
